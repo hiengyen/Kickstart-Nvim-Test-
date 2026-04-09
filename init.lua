@@ -656,7 +656,10 @@ require('lazy').setup({
         clangd = {},
         gopls = {},
         pyright = {},
-        -- rust_analyzer = {},
+        ruff = {}, -- Bổ sung Ruff cho Python (Linting & Formatting cực nhanh)
+        rust_analyzer = {},
+        bashls = {},
+        nil_ls = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
         -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -698,7 +701,15 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- Used to format Lua code
+        'shfmt',  -- Used to format Bash scripts
       })
+      
+      -- Bỏ qua cài đặt nil_ls qua Mason (tránh lỗi FHS/biên dịch), 
+      -- chỉ dùng bản của hệ thống gốc (Nixpkgs)
+      ensure_installed = vim.tbl_filter(function(name)
+        return name ~= "nil_ls"
+      end, ensure_installed)
+
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
@@ -750,11 +761,14 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        python = { 'ruff_fix', 'ruff_format' }, -- Format siêu cấp cho Python
+        c = { 'clang-format' },
+        cpp = { 'clang-format' },
+        go = { 'goimports', 'gofmt' },
+        bash = { 'shfmt' },
+        sh = { 'shfmt' },
+        nix = { 'nixfmt' },
+        rust = { 'rustfmt' },
       },
     },
   },
@@ -817,7 +831,7 @@ require('lazy').setup({
         -- <c-k>: Toggle signature help
         --
         -- See :h blink-cmp-config-keymap for defining your own keymap
-        preset = 'default',
+        preset = 'super-tab',
 
         -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
         --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
@@ -927,7 +941,7 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'python', 'go', 'rust', 'nix' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
